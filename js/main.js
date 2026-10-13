@@ -101,34 +101,39 @@ function startObservers() {
    Fotos flotantes de la portada y foto de "Sobre Jungkook"
    ========================================================================= */
 // Fotos reservadas para la portada y "Sobre Jungkook": no se repiten en la galería
-const PORTADA = (C.portada || []).filter((i) => FOTOS[i]).slice(0, 6);
+const PORTADA = (C.portada || []).filter((i) => FOTOS[i]).slice(0, isSmall ? 2 : 4);
 const SOBRE_JK = FOTOS[C.fotoSobreJungkook] ? C.fotoSobreJungkook : -1;
 const RESERVADAS = new Set([...PORTADA, SOBRE_JK]);
 
 (() => {
   const list = PORTADA.map((i) => FOTOS[i]);
   // posición (%), ancho, desenfoque, opacidad: unas cerca y nítidas, otras lejos y borrosas
-  const spots = [
-    { x: 4, y: 12, w: 190, b: 0, o: 0.95 },
-    { x: 74, y: 8, w: 150, b: 3, o: 0.7 },
-    { x: 80, y: 58, w: 210, b: 0, o: 0.95 },
-    { x: 8, y: 62, w: 140, b: 4, o: 0.6 },
-    { x: 40, y: 2, w: 110, b: 6, o: 0.45 },
-    { x: 44, y: 80, w: 120, b: 5, o: 0.5 },
-  ];
+  const spots = isSmall
+    ? [{ x: -6, y: 6, w: 110, b: 3, o: 0.55 }, { x: 78, y: 4, w: 100, b: 4, o: 0.5 }]
+    : [
+      { x: 1, y: 8, w: 150, b: 2, o: 0.75 },
+      { x: 86, y: 6, w: 130, b: 4, o: 0.6 },
+      { x: 88, y: 64, w: 160, b: 1, o: 0.8 },
+      { x: 3, y: 70, w: 120, b: 5, o: 0.5 },
+    ];
   const box = $('#hero-floaters');
-  const max = isSmall ? 4 : 6;
-  list.slice(0, max).forEach((foto, i) => {
+  list.forEach((foto, i) => {
     const s = spots[i];
     const el = document.createElement('div');
     el.className = 'floater';
-    const w = isSmall ? Math.round(s.w * 0.62) : s.w;
+    const w = s.w;
     el.style.cssText = `left:${s.x}%;top:${s.y}%;--w:${w}px;--b:${s.b}px;--o:${s.o};` +
       `--t:${14 + i * 3}s;--d:${-i * 2.5}s;--dx:${(i % 2 ? -1 : 1) * (18 + i * 4)}px;--dy:${-(20 + i * 6)}px;` +
       `--r0:${-6 - i * 2}deg;--r1:${6 + i * 2}deg`;
     el.append(blobPhoto(foto, { eager: i < 3 }).wrap);
     box.append(el);
   });
+
+  // Foto principal (la más grande de la portada)
+  if (C.fotoPrincipal) {
+    const { wrap } = blobPhoto({ src: C.fotoPrincipal, texto: 'Jungkook' }, { eager: true });
+    $('#hero-main').append(wrap);
+  } else $('#hero-main').hidden = true;
 
   if (SOBRE_JK >= 0) $('#about-photo').append(blobPhoto(FOTOS[SOBRE_JK]).img);
   else $('.about-portrait').hidden = true;
@@ -356,8 +361,12 @@ function createRing(items, { direction = 1, tilt = -6 } = {}) {
   const screen = $('#screen');
   const list = $('#tracklist');
   const playBtn = $('#playbtn');
+  const autoNext = C.reproduccionAutomatica !== false;
   let idx = 0;
-  let playing = false;
+  let playing = false;   // el usuario quiere que suene
+  let player = null;     // YT.Player (API oficial de YouTube)
+  let apiFailed = false;
+  let errorsInRow = 0;
 
   songs.forEach((s, i) => {
     const li = document.createElement('li');
@@ -366,69 +375,141 @@ function createRing(items, { direction = 1, tilt = -6 } = {}) {
     b.innerHTML = `<span class="num">${String(i + 1).padStart(2, '0')}</span><span><span class="t"></span><span class="a"></span></span>`;
     b.querySelector('.t').textContent = s.titulo;
     b.querySelector('.a').textContent = s.artista || '';
-    b.addEventListener('click', () => select(i, true));
+    b.addEventListener('click', () => play(i));
     li.append(b);
     list.append(li);
   });
 
-  function embedUrl(id) {
-    const p = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1', modestbranding: '1' });
-    return `https://www.youtube-nocookie.com/embed/${id}?${p}`;
+  /* --- API de YouTube: permite saber cuándo termina una canción --- */
+  let apiPromise = null;
+  function loadApi() {
+    if (window.YT && window.YT.Player) return Promise.resolve();
+    if (apiPromise) return apiPromise;
+    apiPromise = new Promise((resolve, reject) => {
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => { if (prev) prev(); resolve(); };
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      tag.onerror = reject;
+      document.head.append(tag);
+      setTimeout(() => reject(new Error('timeout')), 8000);
+    });
+    return apiPromise;
   }
 
-  function renderScreen() {
+  function showPoster() {
     const s = songs[idx];
-    screen.replaceChildren();
-    if (playing) {
-      const f = document.createElement('iframe');
-      f.src = embedUrl(s.id);
-      f.title = `${s.titulo} — video de YouTube`;
-      f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-      f.allowFullscreen = true;
-      f.referrerPolicy = 'strict-origin-when-cross-origin';
-      screen.append(f);
-    } else {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'poster';
-      b.style.backgroundImage = `url("https://i.ytimg.com/vi/${s.id}/hqdefault.jpg")`;
-      b.setAttribute('aria-label', `Reproducir ${s.titulo}`);
-      b.innerHTML = '<span class="poster-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>';
-      b.addEventListener('click', () => select(idx, true));
-      screen.append(b);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'poster';
+    b.style.backgroundImage = `url("https://i.ytimg.com/vi/${s.id}/hqdefault.jpg")`;
+    b.setAttribute('aria-label', `Reproducir ${s.titulo}`);
+    b.innerHTML = '<span class="poster-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>';
+    b.addEventListener('click', () => play(idx));
+    screen.replaceChildren(b);
+  }
+
+  // Plan B si la API no carga: iframe normal (sin pasar sola a la siguiente)
+  function plainIframe() {
+    const s = songs[idx];
+    const f = document.createElement('iframe');
+    const p = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
+    f.src = `https://www.youtube-nocookie.com/embed/${s.id}?${p}`;
+    f.title = `${s.titulo}, video de YouTube`;
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    screen.replaceChildren(f);
+  }
+
+  function createPlayer() {
+    const holder = document.createElement('div');
+    screen.replaceChildren(holder);
+    player = new YT.Player(holder, {
+      host: 'https://www.youtube-nocookie.com',
+      videoId: songs[idx].id,
+      playerVars: { autoplay: 1, rel: 0, playsinline: 1, modestbranding: 1 },
+      events: {
+        onReady: (e) => e.target.playVideo(),
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.PLAYING) { errorsInRow = 0; setPlaying(true); }
+          if (e.data === YT.PlayerState.PAUSED) setPlaying(false);
+          if (e.data === YT.PlayerState.ENDED) {
+            if (autoNext) play(idx + 1);
+            else setPlaying(false);
+          }
+        },
+        // video no disponible o sin permiso para insertarse: salta a la siguiente
+        onError: () => {
+          errorsInRow++;
+          if (errorsInRow < songs.length) setTimeout(() => play(idx + 1), 1200);
+        },
+      },
+    });
+    const f = player.getIframe && player.getIframe();
+    if (f) f.title = 'Reproductor de YouTube';
+  }
+
+  async function play(i) {
+    showSong(i);
+    playing = true;
+    renderList();
+    if (apiFailed) { plainIframe(); return; }
+    try {
+      await loadApi();
+    } catch {
+      apiFailed = true;
+      plainIframe();
+      return;
     }
+    if (player && player.loadVideoById) player.loadVideoById(songs[idx].id);
+    else createPlayer();
   }
 
-  function updatePlayBtn() {
-    playBtn.setAttribute('aria-label', playing ? 'Detener' : 'Reproducir');
-    playBtn.innerHTML = playing
-      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>'
-      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+  function togglePlay() {
+    if (!player || !player.getPlayerState) { play(idx); return; }
+    if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo();
+    else player.playVideo();
   }
 
-  function select(i, autoplay) {
+  function setPlaying(v) {
+    playing = v;
+    renderList();
+  }
+
+  function showSong(i) {
     idx = (i + songs.length) % songs.length;
     const s = songs[idx];
-    if (autoplay !== undefined) playing = autoplay;
     $('#now-count').textContent = `Canción ${idx + 1} de ${songs.length}`;
     $('#now-title').textContent = s.titulo;
     $('#now-artist').textContent = s.artista || '';
     $('#now-note').textContent = fill(s.nota || '');
+  }
+
+  function renderList() {
     [...list.querySelectorAll('button')].forEach((b, j) => {
       b.setAttribute('aria-current', j === idx ? 'true' : 'false');
       b.querySelector('.num').innerHTML = j === idx && playing && !reducedMotion
         ? '<span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>'
         : String(j + 1).padStart(2, '0');
     });
-    renderScreen();
-    updatePlayBtn();
+    playBtn.setAttribute('aria-label', playing ? 'Pausar' : 'Reproducir');
+    playBtn.innerHTML = playing
+      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>'
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
   }
 
-  $('#prev').addEventListener('click', () => select(idx - 1, playing));
-  $('#next').addEventListener('click', () => select(idx + 1, playing));
-  playBtn.addEventListener('click', () => select(idx, !playing));
+  const step = (d) => {
+    if (player || apiFailed) play(idx + d);
+    else { showSong(idx + d); renderList(); showPoster(); }
+  };
+  $('#prev').addEventListener('click', () => step(-1));
+  $('#next').addEventListener('click', () => step(1));
+  playBtn.addEventListener('click', togglePlay);
 
-  select(0, false);
+  showSong(0);
+  renderList();
+  showPoster();
 })();
 
 /* =========================================================================
@@ -554,29 +635,3 @@ function heartRain() {
     box.append(el);
   }
 }
-
-/* =========================================================================
-   Créditos de las fotos (las licencias CC BY piden citar al autor)
-   ========================================================================= */
-(() => {
-  const ul = $('#credits-list');
-  const seen = new Set();
-  FOTOS.forEach((f) => {
-    if (!f.autor && !f.fuente) return;
-    const key = f.fuente || f.src;
-    if (seen.has(key)) return;
-    seen.add(key);
-    const li = document.createElement('li');
-    const label = `${f.texto || 'Foto'}: ${f.autor || 'autor desconocido'}${f.licencia ? `, ${f.licencia}` : ''}`;
-    if (f.fuente) {
-      const a = document.createElement('a');
-      a.href = f.fuente;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      a.textContent = label;
-      li.append(a);
-    } else li.textContent = label;
-    ul.append(li);
-  });
-  if (!ul.children.length) $('.credits').hidden = true;
-})();
