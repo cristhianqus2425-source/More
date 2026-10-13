@@ -100,9 +100,13 @@ function startObservers() {
 /* =========================================================================
    Fotos flotantes de la portada y foto de "Sobre Jungkook"
    ========================================================================= */
+// Fotos reservadas para la portada y "Sobre Jungkook": no se repiten en la galería
+const PORTADA = (C.portada || []).filter((i) => FOTOS[i]).slice(0, 6);
+const SOBRE_JK = FOTOS[C.fotoSobreJungkook] ? C.fotoSobreJungkook : -1;
+const RESERVADAS = new Set([...PORTADA, SOBRE_JK]);
+
 (() => {
-  const portada = (C.portada || []).map((i) => FOTOS[i]).filter(Boolean);
-  const list = portada.length ? portada : FOTOS.slice(0, 6);
+  const list = PORTADA.map((i) => FOTOS[i]);
   // posición (%), ancho, desenfoque, opacidad: unas cerca y nítidas, otras lejos y borrosas
   const spots = [
     { x: 4, y: 12, w: 190, b: 0, o: 0.95 },
@@ -126,8 +130,7 @@ function startObservers() {
     box.append(el);
   });
 
-  const aboutFoto = FOTOS[C.fotoSobreJungkook ?? 0];
-  if (aboutFoto) $('#about-photo').append(blobPhoto(aboutFoto).img);
+  if (SOBRE_JK >= 0) $('#about-photo').append(blobPhoto(FOTOS[SOBRE_JK]).img);
   else $('.about-portrait').hidden = true;
 })();
 
@@ -320,14 +323,11 @@ function createRing(items, { direction = 1, tilt = -6 } = {}) {
 (() => {
   $('#gallery-empty').hidden = FOTOS.length > 0;
   if (!FOTOS.length) return;
-  const all = FOTOS.map((f, i) => ({ ...f, ref: i }));
-  // Más de 12 fotos: dos anillos que giran en sentidos opuestos
+  let all = FOTOS.map((f, i) => ({ ...f, ref: i })).filter((f) => !RESERVADAS.has(f.ref));
+  if (all.length < 5) all = FOTOS.map((f, i) => ({ ...f, ref: i })); // muy pocas fotos: se usan todas
+  // Más de 12 fotos: dos anillos que giran en sentidos opuestos. Cada foto aparece una sola vez.
   const groups = all.length > 12 ? [all.filter((_, i) => i % 2 === 0), all.filter((_, i) => i % 2 === 1)] : [all];
-  groups.forEach((g, gi) => {
-    let items = g;
-    while (items.length < 7) items = items.concat(g); // pocas fotos: se repiten para llenar el anillo
-    createRing(items, { direction: gi ? -1 : 1, tilt: gi ? 4 : -6 });
-  });
+  groups.forEach((g, gi) => createRing(g, { direction: gi ? -1 : 1, tilt: gi ? 4 : -6 }));
 })();
 
 /* =========================================================================
