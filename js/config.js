@@ -86,7 +86,7 @@ window.CONFIG = {
       "Gracias por existir, por tu risa y por llenar mis días de color. Te mereces todas las canciones bonitas del mundo.",
     ],
     despedida: "Con todo mi cariño,",
-    firma: "Tu nombre aquí",
+    firma: "Cristhian",
     // Velocidad de la máquina de escribir (milisegundos por letra)
     velocidad: 34,
   },

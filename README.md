@@ -29,7 +29,7 @@ assets/fotos/       ← aquí van las fotos
 
 ### Nombre y carta
 Cambia `nombre`, y dentro de `carta` escribe el `saludo`, los `parrafos`,
-la `despedida` y la `firma` (cambia "Tu nombre aquí" por tu nombre).
+la `despedida` y la `firma`.
 
 ### Fotos
 Ya vienen fotos de Jungkook con licencia libre tomadas de Wikimedia Commons (`jk-01`, `jk-02`…). La página muestra sus créditos al final, como pide la licencia; si borras una foto, borra también su línea en `fotos`.
