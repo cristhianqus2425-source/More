@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Para Morelia 💜</title>
+  <meta name="description" content="Un pequeño universo morado dedicado a Jungkook, hecho como regalo.">
+  <meta name="theme-color" content="#140A24">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💜</text></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body class="locked">
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <div class="veil" aria-hidden="true"></div>
+
+  <!-- 1. Intro -->
+  <section id="intro" class="intro" aria-labelledby="intro-title">
+    <div class="intro-inner">
+      <p class="intro-kicker">Un regalo hecho a mano</p>
+      <h1 id="intro-title" class="intro-title">Para <span data-nombre>Morelia</span> <span class="heart-emoji" aria-hidden="true">💜</span></h1>
+      <button id="enter" class="btn btn-gold" type="button">Entrar</button>
+      <p class="intro-hint">Sube el volumen</p>
+    </div>
+    <div class="intro-ring" aria-hidden="true"></div>
+  </section>
+
+  <nav class="topnav" aria-label="Secciones">
+    <a href="#galeria">Galería</a>
+    <a href="#jungkook">Jungkook</a>
+    <a href="#playlist">Playlist</a>
+    <a href="#carta">Carta</a>
+  </nav>
+
+  <main id="main" inert>
+    <!-- Hero -->
+    <header id="inicio" class="hero">
+      <h2 class="hero-name" data-nombre tabindex="-1">Morelia</h2>
+      <p class="hero-line">Un rincón del universo pintado de morado, con Jungkook, su música y unas palabras que quería decirte.</p>
+      <a class="scroll-cue" href="#galeria"><span>Desliza para empezar</span><i aria-hidden="true"></i></a>
+    </header>
+
+    <!-- 3. Galería -->
+    <section id="galeria" class="section gallery" aria-labelledby="galeria-title">
+      <div class="section-head" data-reveal>
+        <h2 id="galeria-title" class="script-title">Galería dorada</h2>
+        <p class="section-sub">Arrastra para girar el anillo. Toca una foto para verla en grande.</p>
+      </div>
+      <div id="ring-stage" class="ring-stage" tabindex="0" aria-label="Carrusel de fotos. Usa las flechas izquierda y derecha para girar.">
+        <div id="ring" class="ring"></div>
+      </div>
+      <p id="gallery-empty" class="empty-note" hidden>Aún no hay fotos. Copia tus imágenes en <code>assets/fotos/</code> y agrégalas en <code>js/config.js</code>.</p>
+    </section>
+
+    <!-- 4. Sobre Jungkook -->
+    <section id="jungkook" class="section about" aria-labelledby="jk-title">
+      <div class="about-grid">
+        <div class="about-intro" data-reveal>
+          <h2 id="jk-title" class="script-title">Sobre Jungkook</h2>
+          <p class="lead">Jeon Jungkook nació el 1 de septiembre de 1997 en Busan, Corea del Sur. Es el integrante más joven de BTS: el <em>maknae</em> del grupo.</p>
+          <p>Es una de las voces principales de BTS y también brilla en el baile; muchas veces ocupa el centro de las coreografías.</p>
+          <p>Los fans lo llaman <strong class="gold">Golden Maknae</strong> porque parece que todo lo que intenta le sale bien: cantar, bailar, dibujar, hacer deporte, grabar y editar sus propios videos.</p>
+        </div>
+
+        <ol class="timeline" aria-label="Momentos de su carrera en solitario">
+          <li data-reveal>
+            <span class="year">2018</span>
+            <h3>Euphoria</h3>
+            <p>Su canción solista dentro del álbum <em>Love Yourself: Answer</em>. Luminosa y llena de ilusión; para muchos ARMY es la canción que mejor lo describe.</p>
+          </li>
+          <li data-reveal>
+            <span class="year">2020</span>
+            <h3>Still With You</h3>
+            <p>Una balada tranquila y cálida que compartió gratis con los fans durante la celebración del aniversario de BTS.</p>
+          </li>
+          <li data-reveal>
+            <span class="year">2023</span>
+            <h3>GOLDEN</h3>
+            <p>Su primer álbum como solista, con canciones como «Seven», «3D» y «Standing Next to You». «Seven» llegó al número 1 del Billboard Hot 100.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 5. Playlist -->
+    <section id="playlist" class="section playlist" aria-labelledby="pl-title">
+      <div class="section-head" data-reveal>
+        <h2 id="pl-title" class="script-title">Playlist para ti</h2>
+        <p class="section-sub">Canciones para escuchar despacito.</p>
+      </div>
+
+      <div id="player" class="player" data-reveal>
+        <div class="screen" id="screen"></div>
+        <div class="now">
+          <div class="now-text" aria-live="polite">
+            <p class="now-count" id="now-count"></p>
+            <h3 class="now-title" id="now-title"></h3>
+            <p class="now-artist" id="now-artist"></p>
+            <p class="now-note" id="now-note"></p>
+          </div>
+          <div class="controls">
+            <button class="icon-btn" id="prev" type="button" aria-label="Canción anterior">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>
+            </button>
+            <button class="icon-btn icon-btn-main" id="playbtn" type="button" aria-label="Reproducir">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="icon-btn" id="next" type="button" aria-label="Canción siguiente">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>
+            </button>
+          </div>
+        </div>
+        <ol class="tracklist" id="tracklist"></ol>
+      </div>
+      <p id="playlist-empty" class="empty-note" hidden>Aún no hay canciones. Pega los IDs de los videos de YouTube en <code>js/config.js</code>.</p>
+    </section>
+
+    <!-- 6. Carta -->
+    <section id="carta" class="section letter-section" aria-labelledby="carta-title">
+      <h2 id="carta-title" class="script-title" data-reveal>Una carta para ti</h2>
+      <article class="letter" data-reveal>
+        <div id="letter-full" class="visually-hidden"></div>
+        <div id="letter-typed" class="letter-typed" aria-hidden="true"></div>
+        <button id="letter-skip" class="link-btn" type="button" hidden>Mostrar la carta completa</button>
+      </article>
+      <button id="more-hearts" class="btn btn-ghost" type="button" hidden>Más corazones</button>
+    </section>
+
+    <footer class="footer">
+      <p>Hecho con cariño para <span data-nombre>Morelia</span>.</p>
+      <p class="footer-small">Página de fan sin fines comerciales. Las canciones y videos pertenecen a sus autores y se reproducen desde YouTube.</p>
+    </footer>
+  </main>
+
+  <!-- Visor de fotos -->
+  <dialog id="lightbox" class="lightbox" aria-label="Foto ampliada">
+    <figure>
+      <img id="lb-img" alt="">
+      <figcaption id="lb-cap"></figcaption>
+    </figure>
+    <button class="lb-btn lb-prev" id="lb-prev" type="button" aria-label="Foto anterior">‹</button>
+    <button class="lb-btn lb-next" id="lb-next" type="button" aria-label="Foto siguiente">›</button>
+    <button class="lb-close" id="lb-close" type="button" aria-label="Cerrar">×</button>
+  </dialog>
+
+  <div id="heart-rain" class="heart-rain" aria-hidden="true"></div>
+
+  <script src="js/config.js"></script>
+  <script type="module" src="js/three-scene.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
