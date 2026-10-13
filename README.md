@@ -5,11 +5,12 @@ Página de fan dedicada a Jungkook (BTS), hecha como regalo. Es una web estátic
 instalar nada ni compilar.
 
 - Intro con botón "Entrar"
-- Fondo 3D (Three.js): galaxia de partículas moradas y corazones que reaccionan al mouse o al dedo
-- Galería 3D giratoria con las fotos de `assets/fotos/`
+- Fondo claro con galaxia 3D (Three.js) de partículas moradas y corazones que reaccionan al mouse o al dedo
+- Fotos con forma orgánica y bordes difuminados que flotan y giran
+- Galería 3D en dos anillos que giran en sentidos opuestos (las fotos de atrás se desenfocan)
 - Sección "Sobre Jungkook"
-- Playlist con videos oficiales de YouTube
-- Carta final con efecto de máquina de escribir y lluvia de corazones
+- Playlist con videos oficiales de YouTube (ya configurados)
+- Carta dentro de un sobre con sello de cera: se abre, aparece con máquina de escribir y termina con lluvia de corazones
 
 ## Estructura
 
@@ -31,6 +32,10 @@ Cambia `nombre`, y dentro de `carta` escribe el `saludo`, los `parrafos`,
 la `despedida` y la `firma` (cambia "Tu nombre aquí" por tu nombre).
 
 ### Fotos
+Ya vienen fotos de Jungkook con licencia libre tomadas de Wikimedia Commons (`jk-01`, `jk-02`…). La página muestra sus créditos al final, como pide la licencia; si borras una foto, borra también su línea en `fotos`.
+
+Para agregar las tuyas:
+
 1. Copia las fotos en `assets/fotos/` (por ejemplo `foto1.jpg`, `foto2.jpg`…).
 2. En `js/config.js`, dentro de `fotos`, agrega una línea por foto:
    ```js
@@ -40,8 +45,11 @@ la `despedida` y la `firma` (cambia "Tu nombre aquí" por tu nombre).
    ],
    ```
 3. El nombre debe coincidir exactamente (mayúsculas incluidas).
+4. `portada` elige qué fotos flotan en la portada y `fotoSobreJungkook` cuál va junto al texto (por número, empezando en 0).
 
 ### Canciones (IDs de YouTube)
+Las 8 canciones ya tienen su video oficial. Para cambiar o agregar una:
+
 1. Busca el video oficial en YouTube, en los canales **HYBE LABELS** o **BANGTANTV**.
 2. Copia el link, por ejemplo: `https://www.youtube.com/watch?v=AbCdEf12345`
 3. El ID es lo que va después de `v=` → `AbCdEf12345` (11 caracteres).

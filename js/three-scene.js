@@ -16,10 +16,10 @@ function init() {
     return;
   }
   renderer.setPixelRatio(Math.min(devicePixelRatio, isSmall ? 1.5 : 2));
-  renderer.setClearColor(0x140a24, 1);
+  renderer.setClearColor(0xffffff, 0);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x140a24, 0.028);
+  scene.fog = new THREE.FogExp2(0xfbf7ff, 0.03);
 
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 200);
   const CAM_START_Z = 24;
@@ -50,9 +50,9 @@ function init() {
 
   const positions = new Float32Array(COUNT * 3);
   const colors = new Float32Array(COUNT * 3);
-  const inner = new THREE.Color('#F2D493').multiplyScalar(0.55);
-  const mid = new THREE.Color('#C77DFF');
-  const outer = new THREE.Color('#7B2CBF');
+  const inner = new THREE.Color('#D4AF37');
+  const mid = new THREE.Color('#9D4EDD');
+  const outer = new THREE.Color('#C77DFF');
   const tmp = new THREE.Color();
 
   for (let i = 0; i < COUNT; i++) {
@@ -80,12 +80,13 @@ function init() {
   galaxyGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   galaxyGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   const galaxyMat = new THREE.PointsMaterial({
-    size: isSmall ? 0.12 : 0.09,
+    size: isSmall ? 0.13 : 0.1,
+    opacity: 0.75,
     map: dot,
     vertexColors: true,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
+    blending: THREE.NormalBlending,
   });
   const galaxy = new THREE.Points(galaxyGeo, galaxyMat);
   const galaxyPivot = new THREE.Group();
@@ -105,8 +106,8 @@ function init() {
   const starGeo = new THREE.BufferGeometry();
   starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
   const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
-    size: 0.35, map: dot, color: 0xe0aaff, transparent: true, opacity: 0.75,
-    depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    size: 0.4, map: dot, color: 0xc77dff, transparent: true, opacity: 0.45,
+    depthWrite: false, fog: false,
   }));
   scene.add(stars);
 
@@ -128,7 +129,7 @@ function init() {
   heartGeo.rotateZ(Math.PI);
   heartGeo.scale(0.032, 0.032, 0.032);
 
-  scene.add(new THREE.AmbientLight(0x9a6bd1, 1.1));
+  scene.add(new THREE.AmbientLight(0xffffff, 1.6));
   const keyLight = new THREE.PointLight(0xe8c67f, 60, 40);
   keyLight.position.set(4, 6, 8);
   scene.add(keyLight);
@@ -136,15 +137,15 @@ function init() {
   rimLight.position.set(-6, -4, 4);
   scene.add(rimLight);
 
-  const palette = [0xc77dff, 0x9d4edd, 0xe0aaff, 0x7b2cbf, 0xe8c67f];
+  const palette = [0xc77dff, 0x9d4edd, 0xe0aaff, 0x7b2cbf, 0xf3c9ff];
   const materials = palette.map((c, i) => new THREE.MeshStandardMaterial({
     color: c,
     emissive: c,
-    emissiveIntensity: 0.28,
+    emissiveIntensity: 0.12,
     roughness: 0.32,
     metalness: i === 4 ? 0.65 : 0.25,
     transparent: true,
-    opacity: 0.88,
+    opacity: 0.9,
   }));
 
   const HEARTS = isSmall ? 11 : 22;
